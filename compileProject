@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ocamlopt -c ast.ml
+ocamlopt -c interpreter.ml
+ocamlopt -c typecheck.ml
+ocamlopt -c main.ml

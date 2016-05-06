@@ -18,5 +18,5 @@ let assert_raises f x =
   try ignore(f x); false with
   | _ -> true
   
-let _ = assert (Int 22 = interp (Int 32))
+let _ = assert (Int 22 = interp (Int 22))
 let _ = assert (Int 22 = interp (Add(Int 11,Int 11)))

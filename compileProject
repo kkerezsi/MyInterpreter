@@ -4,3 +4,7 @@ ocamlopt -c ast.ml
 ocamlopt -c interpreter.ml
 ocamlopt -c typecheck.ml
 ocamlopt -c main.ml
+
+ocamlopt -o main ast.cmx interpreter.cmx typecheck.cmx main.cmx
+
+./main

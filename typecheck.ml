@@ -1,6 +1,6 @@
 open Ast;;
 open Interpreter;;
-(*type check*)
+(*type check
 let rec typecheck ctx = function
   | Var x -> lookup ctx x
   | Int _ -> TInt
@@ -40,3 +40,4 @@ and
   let e3t = typecheck ctx e3 in
     if e1t = TBool && e2t = e3t then e2t
     else failwith "Type error (if)"
+*)

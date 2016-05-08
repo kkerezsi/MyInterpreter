@@ -9,8 +9,8 @@ type tVal =
  | Loc of int
 
 type typ = 
-    | TPrimitive of tVal
-    | TClass of string
+    | TPrimitive
+    | TClass
     | TBot  
 
 type expr =
@@ -19,19 +19,18 @@ type expr =
   | Field of string*string (**)
   | AssignVar of string*expr (**)
   | AssignField of string*string*expr (**)
-  | Sequence of expr*expr (**)
-  | Compound of expr*expr (**)
+  | Sequence of expr*expr (* ok *)
   | If of expr*expr*expr (* ok *)
   | Add of expr*expr (* ok *)
   | Sub of expr*expr (* ok *)
   | Mult of expr*expr (* ok *)
-  | Div of expr*expr (**)
-  | And of expr*expr (**)
-  | Or of expr*expr (**)
-  | Not of expr (**)
-  | While of expr*expr (**)
+  | Div of expr*expr (* ok *)
+  | And of expr*expr (* ok *)
+  | Or of expr*expr (* ok *)
+  | Not of expr (* ok *)
+  | While of expr*expr (* ok *)
   | BlockWithVar of typ*string*expr (**)
-  | BlockWithoutVar of expr (**)
+  | BlockWithoutVar of expr (* ok *)
 
 type fieldDecl = FieldDecl of typ*string
 
@@ -66,7 +65,7 @@ type fieldEnv = FieldEnv of string*typVal list
 
 type objVal = ObjVal of string*fieldEnv 
 
-type heap = Heap of int*objVal
+type heap = Heap of (int*objVal) list
 (*-------------------*)
 
 

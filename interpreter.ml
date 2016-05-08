@@ -1,9 +1,13 @@
 open Ast;;
 
-let is_value = function
-  | Int _ | Bool _ | Float _ | Loc _ -> true
-  | _ -> false;;
+let myHeap = []
 
+let is_value = function
+  | Int _ | Bool _ | Float _ | Loc _ | Unit -> true
+  | _ -> false
+
+let is_typ = function
+  | TPrimitive | TClass | TBot  -> true
 
 let is_primitive = function
   | Prim _         -> true 
@@ -33,7 +37,36 @@ let rec printList = function
   | (h::t) -> print_int h; print_string " " ; printList t;;
 
 (* -- Stack -- *)
-  
+
+(* -- Environment var operations -- *)
+
+
+let getFirstVarName = function
+  | VarEnv (x,y) ->  x
+
+let getFirstVarValue = function
+  | VarEnv (_,i) ->
+    match i with
+     | []     -> failwith "Empty stack"
+     | (h::t) -> match h with
+       | TypeVal(_,i) -> i
+
+let popFirstVar = function
+  | VarEnv (x,i) ->
+    match i with
+     | []     ->  failwith "Empty stack"
+     | (h::t) ->  VarEnv (x,t)
+
+
+(* -- Environment var operations -- *)
+
+(* -- Heap operations -- *)
+
+
+
+(* -- Heap operations -- *)
+
+(* -- General purpose functions -- *)  
 let getIntVal x = 
   if is_primitive x
     then match x with
@@ -67,7 +100,7 @@ let getLocVal x =
     else
       failwith "not found";;
 
-
+(* -- General purpose functions -- *)  
 
 (*-step implementation,
   -one step at a time*)
@@ -83,6 +116,9 @@ let rec step = function
   | Or(e1,e2)  -> step_or e1 e2
   | Not(e) -> step_not e
   | While(e1,e2) -> step_while e1 e2
+  | Sequence(e1,e2) -> step_seq e1 e2 
+  | BlockWithoutVar(e1) -> step_block_nvar e1
+  | BlockWithVar(myTyp,name,e1) -> step_block_var myTyp name e1
   (*| New(st,li) -> step_new st li
     | Call(st1,st2) -> step_call st1 st2  ///to be implemented*)
   | _ -> failwith "Run-time type error: unknown command"
@@ -186,6 +222,30 @@ and
     | _-> failwith "Run-time type error: while"
   else While(step e1, e2)
 
+
+and
+  step_seq e1 e2 = 
+    if is_primitive_val e1 then
+      if is_primitive_val e2 then
+        Prim Unit
+      else Sequence ( e1,step e2)
+    else Sequence ( step e1, e2)
+
+and 
+
+  step_block_nvar e1 = 
+    if is_primitive_val e1 then
+      e1
+    else BlockWithoutVar ( step e1 )
+
+and 
+
+  step_block_var typ name e1 =
+    if is_primitive_val e1 then
+      e1
+    else BlockWithVar( typ, name, step e1)
+
+
 (*multistep*)
 let rec multistep e =
   if is_primitive_val e then e
@@ -201,3 +261,4 @@ let lookup ctx x =
 let extend ctx x t =
   (x,t)::ctx
 *)
+

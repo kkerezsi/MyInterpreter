@@ -3,6 +3,9 @@ open Interpreter;;
 open Typecheck;;
 open Printf;;
 
+let myHeap = [];;
+let myEnv = [];;
+
 (*** Interpreter ***)
 
 (* [interp e] first type checks [e] in the empty 
@@ -10,9 +13,9 @@ open Printf;;
    evaluates [e] to a value [v], where e -->* v.
    That evaluation should never raise an exception,
    becuase [e] typechecks. *)
-let interp e =
+let interp e env heap =
   (*ignore(typecheck empty e); multistep e*)
-  multistep e
+  multistep e env heap
 
 
 (* A few test cases *)
@@ -20,11 +23,12 @@ let assert_raises f x =
   try ignore(f x); false with
   | _ -> true
   
-let _ = assert (Prim (Int 22) = interp ( Prim (Int 22) ))
+let _ = assert (Prim (Int 22) = (interp (Prim (Int 22)) myEnv myHeap));;
 
-let _ = print_int (getIntVal (interp(Prim (Int 22))));;
+let _ = print_int (getIntVal (interp (Prim (Int 22)) myEnv myHeap));;
 printf "\n";;
-let _ = assert (Prim (Int 22) = interp (Add(Prim (Int 11), Prim(Int 11) )))
+
+let _ = assert (Prim (Int 22) = interp (Add(Prim (Int 11), Prim(Int 11)))  myEnv myHeap)
 
 let _ = assert ( true = is_value (Int 22 ))
 let _ = assert ( true = is_primitive (Prim (Int 10)))
@@ -43,25 +47,23 @@ printf "\n";;
 
 (* Check environment vars *)
 
-let _ = assert ( getFirstVarName ( VarEnv ("myVar",
-										  [ TypeVal (TPrimitive, (Int 5)) ])) = "myVar" )
+let _ = assert ( getFirstVarName ( 
+	 [  ("myVar", TypeVal (TPrimitive, (Int 5))) ] ) = "myVar" )
 
-let _ = assert ( getFirstVarValue ( VarEnv ("myVar",
-										  [ TypeVal (TPrimitive, (Int 5)) ])) = (Int 5) )
+let _ = assert ( getFirstVarValue ( 
+	 [  ("myVar", TypeVal (TPrimitive, (Int 5))) ] ) = (Int 5) )
 
-let _ = assert ( getFirstVarValue ( VarEnv ("myVar",
-										  [ 
-										  	TypeVal (TPrimitive, (Int 5));
-										  	TypeVal (TPrimitive, (Int 6));
-										  	TypeVal (TPrimitive, (Int 7));
-										  ])) = (Int 5) )
+let _ = assert ( getFirstVarValue ([ 
+								  	 ("myVar1", TypeVal (TPrimitive, (Int 5)));
+								  	 ("myVar2", TypeVal (TPrimitive, (Int 6)));
+								  	 ("myVar3", TypeVal (TPrimitive, (Int 7)));
+								  ]) = (Int 5) )
 
-let _ = assert ( getFirstVarValue ( popFirstVar ( popFirstVar ( VarEnv ("myVar",
-										  [ 
-										  	TypeVal (TPrimitive, (Int 5));
-										  	TypeVal (TPrimitive, (Int 6));
-										  	TypeVal (TPrimitive, (Int 7));
-										  ])))) = (Int 7) )
+let _ = assert ( getFirstVarValue ( popFirstVar ( popFirstVar ([ 
+								  	 ("myVar1", TypeVal (TPrimitive, (Int 5)));
+								  	 ("myVar2", TypeVal (TPrimitive, (Int 6)));
+								  	 ("myVar3", TypeVal (TPrimitive, (Int 7)));
+								  ]))) = (Int 7) )
 (*
 let _ = assert ( getFirstVarValue ("myVar",TPrimitive, (Int 5)) = 5 )
 let _ = assert ( getFirstVarType ("myVar",TPrimitive, (Int 5)) = TPrimitive )

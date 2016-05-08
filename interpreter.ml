@@ -1,7 +1,5 @@
 open Ast;;
 
-let myHeap = []
-
 let is_value = function
   | Int _ | Bool _ | Float _ | Loc _ | Unit -> true
   | _ -> false
@@ -42,21 +40,24 @@ let rec printList = function
 
 
 let getFirstVarName = function
-  | VarEnv (x,y) ->  x
+  | [] -> failwith "Empty stack"
+  | (h::t) -> match h with
+    | (i,_) -> i
 
 let getFirstVarValue = function
-  | VarEnv (_,i) ->
-    match i with
-     | []     -> failwith "Empty stack"
-     | (h::t) -> match h with
-       | TypeVal(_,i) -> i
+  | [] -> failwith "Empty stack"
+  | (h::t) -> match h with
+    | (_, TypeVal (_,j)) -> j
+      
 
 let popFirstVar = function
-  | VarEnv (x,i) ->
-    match i with
-     | []     ->  failwith "Empty stack"
-     | (h::t) ->  VarEnv (x,t)
+  | [] -> failwith "Empty stack"
+  | (h::t) -> t
 
+
+let getVal a stk = 
+ try List.assoc a stk with
+  | Not_found -> failwith "Type error (unbound variable)"
 
 (* -- Environment var operations -- *)
 
@@ -104,161 +105,158 @@ let getLocVal x =
 
 (*-step implementation,
   -one step at a time*)
-let rec step = function
-  | Prim _ -> failwith "not a step"
-  | Var _ -> failwith "Unbound variable"
-  | Add(e1, e2) -> step_add e1 e2
-  | Sub(e1, e2) -> step_sub e1 e2
-  | And(e1, e2) -> step_and e1 e2
-  | If(e1,e2,e3) -> step_if e1 e2 e3
-  | Mult(e1,e2) -> step_mult e1 e2
-  | Div(e1,e2) -> step_div e1 e2
-  | Or(e1,e2)  -> step_or e1 e2
-  | Not(e) -> step_not e
-  | While(e1,e2) -> step_while e1 e2
-  | Sequence(e1,e2) -> step_seq e1 e2 
-  | BlockWithoutVar(e1) -> step_block_nvar e1
-  | BlockWithVar(myTyp,name,e1) -> step_block_var myTyp name e1
+let rec step env heap = function
+  | Prim _          -> failwith "not a step"
+  | Var _           -> failwith "Unbound variable"
+  | AssignVar(v,e)  -> step_assign v e env heap 
+  | Add(e1, e2)     -> step_add e1 e2 env heap
+  | Sub(e1, e2)     -> step_sub e1 e2 env heap
+  | And(e1, e2)     -> step_and e1 e2 env heap
+  | If(e1,e2,e3)    -> step_if e1 e2 e3 env heap
+  | Mult(e1,e2)     -> step_mult e1 e2 env heap
+  | Div(e1,e2)      -> step_div e1 e2 env heap
+  | Or(e1,e2)       -> step_or e1 e2 env heap
+  | Not(e)          -> step_not e env heap
+  | While(e1,e2)    -> step_while e1 e2 env heap
+  | Sequence(e1,e2) -> step_seq e1 e2 env heap
+  | BlockWithoutVar(e1) -> step_block_nvar e1 env heap
+  | BlockWithVar(myTyp,name,e1) -> step_block_var myTyp name e1 env heap
+  | Ret(v,e)        -> step_ret v e env heap
   (*| New(st,li) -> step_new st li
     | Call(st1,st2) -> step_call st1 st2  ///to be implemented*)
   | _ -> failwith "Run-time type error: unknown command"
-  
  
+
+and
+  step_assign v e env heap = e
+
+and  
+ 
+ step_ret v e env heap =  Prim (Int 10)
+
 and
   (* Eval e1, eval e2, add the values *)
-  step_add e1 e2 =
+  step_add e1 e2 env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Int i),Prim (Int j)) -> Prim(Int (i+j))
       | (Prim (Float i),Prim (Float j)) -> Prim(Float (i+.j))
       | _ -> failwith "Run-time type error: add"
-    else Add(e1, step e2)
-  else Add(step e1, e2)
+    else Add(e1, step env heap e2)
+  else Add(step env heap e1, e2)
 
 and
   (* Eval e1, eval e2, add the values *)
-  step_sub e1 e2 =
+  step_sub e1 e2 env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Int i),Prim (Int j)) -> Prim(Int (i-j))
       | (Prim (Float i),Prim (Float j)) -> Prim(Float (i-.j))
       | _ -> failwith "Run-time type error: add"
-    else Sub(e1, step e2)
-  else Sub(step e1, e2)
+    else Sub(e1, step env heap e2)
+  else Sub(step  env heap e1, e2)
 
 and
   
   (* Eval e1, eval e2, multiply the values *)
-  step_mult e1 e2 =
+  step_mult e1 e2 env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match(e1,e2) with
       | (Prim (Int i),Prim (Int j)) -> Prim(Int (i*j))
       | (Prim (Float i),Prim (Float j)) -> Prim(Float (i*.j))
       | _ -> failwith "Run-time type error: mult"
-    else Mult(e1, step e2)
-  else Mult(step e1, e2)
+    else Mult(e1, step env heap e2)
+  else Mult(step env heap e1, e2)
 
 and 
 
-  step_div e1 e2 = 
+  step_div e1 e2 env heap = 
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
     | (Prim (Int i),Prim (Int j)) -> Prim(Int (i/j))
     | (Prim (Float i),Prim (Float j)) -> Prim(Float (i/.j))
     | _ -> failwith "Run-time type error: div"
-    else Div(e1, step e2)
-  else Div(step e1, e2)
+    else Div(e1, step env heap e2)
+  else Div(step env heap e1, e2)
 
 and
   (* Eval e1, eval e2, && the values *)
-  step_and e1 e2 =
+  step_and e1 e2 env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x&&y))
       | _ -> failwith "Run-time type error: and"
-    else And(e1, step e2)
-  else And(step e1, e2)
+    else And(e1, step env heap e2)
+  else And(step env heap e1, e2)
 
 and
 
-  step_if e1 e2 e3 =
+  step_if e1 e2 e3 env heap =
   if is_primitive_val e1 then
     match e1 with
       | Prim(Bool true) -> e2
       | Prim(Bool false) -> e3
       | _ -> failwith "Run-time type error (if)"
-  else If(step e1, e2, e3)
+  else If(step env heap e1, e2, e3)
 
 and
-  step_or e1 e2 =
+  step_or e1 e2 env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x||y))
       | _ -> failwith "Run-time type error: or"
-    else And(e1, step e2)
-  else And(step e1, e2)
+    else And(e1, step  env heap e2)
+  else And(step env heap e1, e2)
 
 and
 
-  step_not e =
+  step_not e env heap =
   if is_primitive_val e  
   then match e with
     | Prim(Bool x) -> Prim(Bool (not x))
     | _ -> failwith "Run-time type error: not"
-  else Not(step e)
+  else Not(step env heap e)
 
 and
-  step_while e1 e2 =
+  step_while e1 e2 env heap =
   if is_primitive_val e1
   then  match  e1 with
-    | Prim(Bool true) -> While(e1, step e2)
+    | Prim(Bool true) -> While(e1, step env heap e2)
     | Prim(Bool false) -> e2
     | _-> failwith "Run-time type error: while"
-  else While(step e1, e2)
+  else While(step env heap e1, e2)
 
 
 and
-  step_seq e1 e2 = 
+  step_seq e1 e2 env heap = 
     if is_primitive_val e1 then
       if is_primitive_val e2 then
         Prim Unit
-      else Sequence ( e1,step e2)
-    else Sequence ( step e1, e2)
+      else Sequence ( e1,step env heap e2)
+    else Sequence ( step env heap e1, e2)
 
 and 
 
-  step_block_nvar e1 = 
+  step_block_nvar e1 env heap = 
     if is_primitive_val e1 then
       e1
-    else BlockWithoutVar ( step e1 )
+    else BlockWithoutVar ( step env heap e1)
 
 and 
 
-  step_block_var typ name e1 =
+  step_block_var typ name e1 env heap =
     if is_primitive_val e1 then
       e1
-    else BlockWithVar( typ, name, step e1)
+    else BlockWithVar( typ, name, step env heap e1)
 
 
 (*multistep*)
-let rec multistep e =
+let rec multistep e env heap =
   if is_primitive_val e then e
-  else multistep (step e)
-
-(*
-(*lookup*)
-let lookup ctx x =
-  try List.assoc x ctx with
-    | Not_found -> failwith "Type error (unbound variable)"
-
-(*extend*)
-let extend ctx x t =
-  (x,t)::ctx
-*)
-
+  else multistep (step env heap e) env heap

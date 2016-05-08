@@ -13,6 +13,25 @@ type typ =
     | TClass
     | TBot  
 
+(* --------- *)
+(*    Alex   *)
+(* --------- *)
+
+(*Environment vars*)
+type typVal = TypeVal of typ*tVal
+
+(* This should be a stack *)
+type varEnv = VarEnv of (string*typVal) list
+(*-------------------*)
+
+(*Heap vars*)
+type fieldEnv = FieldEnv of string*typVal list
+
+type objVal = ObjVal of string*fieldEnv 
+
+type heap = Heap of (int*objVal) list
+(*-------------------*)
+
 type expr =
   | Prim of tVal (* ok *)
   | Var of string (* ok *)
@@ -31,6 +50,7 @@ type expr =
   | While of expr*expr (* ok *)
   | BlockWithVar of typ*string*expr (**)
   | BlockWithoutVar of expr (* ok *)
+  | Ret of string*tVal (* *)
 
 type fieldDecl = FieldDecl of typ*string
 
@@ -47,25 +67,3 @@ type methodDeclList = MethodDeclList of methodDecl list
 type classDecl = ClassDecl of string*string*fieldDeclList*methodDeclList
 
 type prog = Prog of (string*classDecl) list
-
-(* --------- *)
-(*    Alex   *)
-(* --------- *)
-
-(*Environment vars*)
-type typVal = TypeVal of typ*tVal
-
-(* This should be a stack *)
-type varEnv = VarEnv of string*typVal list
-(*-------------------*)
-
-
-(*Heap vars*)
-type fieldEnv = FieldEnv of string*typVal list
-
-type objVal = ObjVal of string*fieldEnv 
-
-type heap = Heap of (int*objVal) list
-(*-------------------*)
-
-

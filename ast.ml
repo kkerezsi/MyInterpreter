@@ -14,24 +14,24 @@ type typ =
     | TBot  
 
 type expr =
-  | Prim of tVal
-  | Var of string
-  | Field of string*string
-  | AssignVar of string*expr
-  | AssignField of string*string*expr
-  | Sequence of expr*expr
-  | Compound of expr*expr 
-  | If of expr*expr*expr
-  | Add of expr*expr
-  | Sub of expr*expr
-  | Mult of expr*expr
-  | Div of expr*expr
-  | And of expr*expr
-  | Or of expr*expr
-  | Not of expr
-  | While of expr*expr
-  | BlockWithVar of typ*string*expr
-  | BlockWithoutVar of expr
+  | Prim of tVal (* ok *)
+  | Var of string (* ok *)
+  | Field of string*string (**)
+  | AssignVar of string*expr (**)
+  | AssignField of string*string*expr (**)
+  | Sequence of expr*expr (**)
+  | Compound of expr*expr (**)
+  | If of expr*expr*expr (* ok *)
+  | Add of expr*expr (* ok *)
+  | Sub of expr*expr (* ok *)
+  | Mult of expr*expr (* ok *)
+  | Div of expr*expr (**)
+  | And of expr*expr (**)
+  | Or of expr*expr (**)
+  | Not of expr (**)
+  | While of expr*expr (**)
+  | BlockWithVar of typ*string*expr (**)
+  | BlockWithoutVar of expr (**)
 
 type fieldDecl = FieldDecl of typ*string
 

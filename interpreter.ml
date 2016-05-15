@@ -145,18 +145,22 @@ let rec step env heap = function
   | BlockWithoutVar(e1) -> step_block_nvar e1 env heap
   | BlockWithVar(myTyp,name,e1) -> step_block_var myTyp name e1 env heap
   | Ret(v,e)        -> step_ret v e env heap
-  (*| New(st,li) -> step_new st li
-    | Call(st1,st2) -> step_call st1 st2  ///to be implemented*)
+  | New(cName,lexpr) -> step_new cName lexpr env heap 
+  | Call(cName,mName,lexpr) -> step_call cName mName lexpr env heap 
   | _ -> failwith "Run-time type error: unknown command"
  
 
+and 
+  step_new cName lexpr env heap = Prim(Int 10)
+
+and 
+  step_call cName mName lexpr env heap = Prim(Int 10)
+
 and
   step_assign v e env heap = Prim( Int 10)
-  
     
 and  
- 
- step_ret v e env heap =  Prim (Int 10)
+  step_ret v e env heap =  Prim (Int 10)
 
 and
   (* Eval e1, eval e2, add the values *)

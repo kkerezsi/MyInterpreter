@@ -47,15 +47,17 @@ type expr =
   | And of expr*expr (* ok *)
   | Or of expr*expr (* ok *)
   | Not of expr (* ok *)
-  | Equals of expr*expr (* *)
-  | NotEquals of expr*expr (* *)
-  | Less of expr*expr (* *)
-  | LessOrEquals of expr*expr (* *)
-  | GraterOrEquals of expr*expr (* *)
+  | Equals of expr*expr (* ok *)
+  | NotEquals of expr*expr (* ok *)
+  | Less of expr*expr (* ok *)
+  | LessOrEquals of expr*expr (* ok *)
+  | GraterOrEquals of expr*expr (* ok *)
   | Grater of expr*expr (* *)
   | While of expr*expr (* ok *)
   | BlockWithVar of typ*string*expr (**)
   | BlockWithoutVar of expr (* ok *)
+  | New of string*expr list
+  | Call of string*string*expr list
   | Ret of string*tVal (* *)
 
 type fieldDecl = FieldDecl of typ*string

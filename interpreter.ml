@@ -19,6 +19,10 @@ let is_primitive_val = function
      | Prim (Int _) | Prim(Bool _) | Prim(Float _) | Prim(Loc _) -> true
      | _ -> false
 
+let get_primitive_val = function
+     | Prim x -> x
+     | _ -> failwith "Unable to get primitive val"
+
 (* -- Stack -- *)
 let getFirstStack = function
   | []        -> failwith "Empty stack"
@@ -59,6 +63,18 @@ let popFirstVar = function
   | (h::t) -> t
 
 
+let rec getType v = function
+ | []       -> failwith "Empty list"
+ | (h::t)   -> 
+   match h with
+   | (key,TypeVal(mt,_)) -> if(key = v) then mt
+                           else getType v t
+
+let getTypeExp = function
+  | Prim (Int _ ) | Prim(Float _) | Prim(Bool _) | Prim(Unit) -> TPrimitive
+  | Prim (Loc _ )                                               -> TClass
+  | _                                                           -> failwith "Could not find type"
+                  
 let getVal a stk = 
  try List.assoc a stk with
   | Not_found -> failwith "Type error (unbound variable)"
@@ -78,14 +94,17 @@ let rec getVarVal var = function
                                           else getVarVal var t
 
 
-  (* if (isDefinedVar var V) && (loc = getVal var V) &&
-     (isLocation loc) && ( isDefinedHeap loc ) &&
-     (fldE = getFieldE loc H) && (isDefinedVar fld fldE) &&
-     (val = getVal fld fldE) then *)
- 
+(* replaces in myList a's value with b*)
+let rec replaceInList a b filledUp = function
+  | [] -> List.rev filledUp
+  | (h::t) -> match h with
+              | (name, texp) -> if name = a then
+                                replaceInList a b ((name,b)::filledUp) t
+                              else
+                                replaceInList a b ((name,texp)::filledUp) t
 
-
-
+let updateVar v typV e ref env =
+  env := (replaceInList v (v,TypeVal(typV, (get_primitive_val e))) [] !env)
 (* -- Environment var operations -- *)
 
 (* -- Heap operations -- *)
@@ -108,8 +127,14 @@ let rec isDefinedField field = function
               | (f,_) -> if f = field then true
                          else isDefinedField field t
 
+is_subtype t1 t2 = match (t1,t2) with
+   |(TPrimitive ta, TPrimitive tb) -> if ta=tb then true else false
+   | (TBot, TBot) -> true
+   | (TBot, TClass cn) -> true
+   |(TClass cn1,TClass cn2) -> true
+   | (_,_) -> false
 
-(* -- Heap operations -- *)
+   (* -- Heap operations -- *)
 
 (* -- General purpose functions -- *)  
 let getIntVal x = 
@@ -149,49 +174,49 @@ let getLocVal x =
 
 (*-step implementation,
   -one step at a time*)
-let rec step env heap = function
+let rec step ref env heap = function
   | Prim _          -> failwith "not a step"
   | Var _           -> failwith "Unbound variable"
-  | GetVal(var)     -> step_getVal var env heap
-  | GetField(var,fld) -> step_getVarFld var fld env heap
-  | AssignVar(v,e)  -> step_assign v e env heap 
-  | Add(e1, e2)     -> step_add e1 e2 env heap
-  | Sub(e1, e2)     -> step_sub e1 e2 env heap
-  | And(e1, e2)     -> step_and e1 e2 env heap
-  | If(e1,e2,e3)    -> step_if e1 e2 e3 env heap
-  | Mult(e1,e2)     -> step_mult e1 e2 env heap
-  | Div(e1,e2)      -> step_div e1 e2 env heap
-  | Or(e1,e2)       -> step_or e1 e2 env heap
-  | Not(e)          -> step_not e env heap
-  | Equals(e1,e2)   -> step_eql e1 e2 env heap
-  | NotEquals(e1,e2)-> step_neql e1 e2 env heap
-  | Less(e1,e2)     -> step_less e1 e2 env heap
-  | LessOrEquals(e1,e2) -> step_lessEql e1 e2 env heap
-  | Grater(e1,e2)   -> step_grater e1 e2 env heap
-  | GraterOrEquals(e1,e2) -> step_graterEql e1 e2 env heap
-  | While(e1,e2)    -> step_while e1 e2 env heap
-  | Sequence(e1,e2) -> step_seq e1 e2 env heap
-  | BlockWithoutVar(e1)         -> step_block_nvar e1 env heap
-  | BlockWithVar(myTyp,name,e1) -> step_block_var myTyp name e1 env heap
-  | Ret(v,e)                    -> step_ret v e env heap
-  | New(cName,lexpr)            -> step_new cName lexpr env heap 
-  | Call(cName,mName,lexpr)     -> step_call cName mName lexpr env heap 
+  | GetVal(var)     -> step_getVal var ref env heap
+  | GetField(var,fld) -> step_getVarFld var fld ref env heap
+  | AssignVar(v,e)  -> step_assign v e ref env heap 
+  | Add(e1, e2)     -> step_add e1 e2 ref env heap
+  | Sub(e1, e2)     -> step_sub e1 e2 ref env heap
+  | And(e1, e2)     -> step_and e1 e2 ref env heap
+  | If(e1,e2,e3)    -> step_if e1 e2 e3 ref env heap
+  | Mult(e1,e2)     -> step_mult e1 e2 ref env heap
+  | Div(e1,e2)      -> step_div e1 e2 ref env heap
+  | Or(e1,e2)       -> step_or e1 e2 ref env heap
+  | Not(e)          -> step_not e ref env heap
+  | Equals(e1,e2)   -> step_eql e1 e2 ref env heap
+  | NotEquals(e1,e2)-> step_neql e1 e2 ref env heap
+  | Less(e1,e2)     -> step_less e1 e2 ref env heap
+  | LessOrEquals(e1,e2) -> step_lessEql e1 e2 ref env heap
+  | Grater(e1,e2)   -> step_grater e1 e2 ref env heap
+  | GraterOrEquals(e1,e2) -> step_graterEql e1 e2 ref env heap
+  | While(e1,e2)    -> step_while e1 e2 ref env heap
+  | Sequence(e1,e2) -> step_seq e1 e2 ref env heap
+  | BlockWithoutVar(e1)         -> step_block_nvar e1 ref env heap
+  | BlockWithVar(myTyp,name,e1) -> step_block_var myTyp name e1 ref env heap
+  | Ret(v,e)                    -> step_ret v e ref env heap
+  | New(cName,lexpr)            -> step_new cName lexpr ref env heap 
+  | Call(cName,mName,lexpr)     -> step_call cName mName lexpr ref env heap 
   | _ -> failwith "Run-time type error: unknown command"
  
 
 and 
-  step_getVal var env heap = 
-    if(isDefinedVar var env) then
-       getVarVal var env 
+  step_getVal var ref env heap = 
+    if(isDefinedVar var !env) then
+       getVarVal var !env 
     else
       failwith "Error ! Var name does not exist in the environment"
 
 and 
-  step_getVarFld var fld env heap = 
-    if (isDefinedVar var env) then
-        let loc = getVarVal var env in 
-          if(isLocation loc) && (isDefinedLoc loc heap) then
-            let fldE = getFieldE loc heap in
+  step_getVarFld var fld ref env heap = 
+    if (isDefinedVar var !env) then
+        let loc = getVarVal var !env in 
+          if(isLocation loc) && (isDefinedLoc loc !heap) then
+            let fldE = getFieldE loc !heap in
               if( isDefinedField fld fldE ) then 
                 let fldVal = getVarVal fld fldE in
                   fldVal
@@ -203,203 +228,215 @@ and
       failwith "Error !Var name does not exist in the environment"
 
 and 
-  step_new cName lexpr env heap = Prim(Int 10)
+  step_new cName lexpr ref env heap = Prim(Int 10)
 
 and 
-  step_call cName mName lexpr env heap = Prim(Int 10)
+  step_call cName mName lexpr ref env heap = Prim(Int 10)
 
 and
-  step_assign v e env heap = Prim( Int 10)
+  step_assign v e ref env heap = 
+    if is_primitive_val e then 
+      if isDefinedVar v !env then
+       let typ_var = getType v !env in
+       let typ_val = getTypeExp e in
+        if is_subtype typ_val typ_var then
+         updateVar v typ_val e ref env
+        else
+          failwith "Error"
+      else
+       failwith "Error"
+    else 
+      AssignVar( v ,step ref env heap e)
     
 and  
-  step_ret v e env heap =  Prim (Int 10)
+  step_ret v e ref env heap =  Prim (Int 10)
 
 and
   (* Eval e1, eval e2, add the values *)
-  step_add e1 e2 env heap =
+  step_add e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Int i),Prim (Int j)) -> Prim(Int (i+j))
       | (Prim (Float i),Prim (Float j)) -> Prim(Float (i+.j))
       | _ -> failwith "Run-time type error: add"
-    else Add(e1, step env heap e2)
-  else Add(step env heap e1, e2)
+    else Add(e1, step ref env heap e2)
+  else Add(step ref env heap e1, e2)
 
 and
   (* Eval e1, eval e2, add the values *)
-  step_sub e1 e2 env heap =
+  step_sub e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Int i),Prim (Int j)) -> Prim(Int (i-j))
       | (Prim (Float i),Prim (Float j)) -> Prim(Float (i-.j))
       | _ -> failwith "Run-time type error: add"
-    else Sub(e1, step env heap e2)
-  else Sub(step  env heap e1, e2)
+    else Sub(e1, step ref env heap e2)
+  else Sub(step ref env heap e1, e2)
 
 and
   
   (* Eval e1, eval e2, multiply the values *)
-  step_mult e1 e2 env heap =
+  step_mult e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match(e1,e2) with
       | (Prim (Int i),Prim (Int j)) -> Prim(Int (i*j))
       | (Prim (Float i),Prim (Float j)) -> Prim(Float (i*.j))
       | _ -> failwith "Run-time type error: mult"
-    else Mult(e1, step env heap e2)
-  else Mult(step env heap e1, e2)
+    else Mult(e1, step ref env heap e2)
+  else Mult(step ref env heap e1, e2)
 
 and 
 
-  step_div e1 e2 env heap = 
+  step_div e1 e2 ref env heap = 
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
     | (Prim (Int i),Prim (Int j)) -> Prim(Int (i/j))
     | (Prim (Float i),Prim (Float j)) -> Prim(Float (i/.j))
     | _ -> failwith "Run-time type error: div"
-    else Div(e1, step env heap e2)
-  else Div(step env heap e1, e2)
+    else Div(e1, step ref env heap e2)
+  else Div(step ref env heap e1, e2)
 
 and
   (* Eval e1, eval e2, && the values *)
-  step_and e1 e2 env heap =
+  step_and e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x&&y))
       | _ -> failwith "Run-time type error: and"
-    else And(e1, step env heap e2)
-  else And(step env heap e1, e2)
+    else And(e1, step ref env heap e2)
+  else And(step ref env heap e1, e2)
 
 and
 
-  step_if e1 e2 e3 env heap =
+  step_if e1 e2 e3 ref env heap =
   if is_primitive_val e1 then
     match e1 with
       | Prim(Bool true) -> e2
       | Prim(Bool false) -> e3
       | _ -> failwith "Run-time type error (if)"
-  else If(step env heap e1, e2, e3)
+  else If(step ref env heap e1, e2, e3)
 
 and
-  step_or e1 e2 env heap =
+  step_or e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x||y))
       | _ -> failwith "Run-time type error: or"
-    else And(e1, step  env heap e2)
-  else And(step env heap e1, e2)
+    else And(e1, step ref env heap e2)
+  else And(step ref env heap e1, e2)
 
 and
 
-  step_not e env heap =
+  step_not e ref env heap =
   if is_primitive_val e  
   then match e with
     | Prim(Bool x) -> Prim(Bool (not x))
     | _ -> failwith "Run-time type error: not"
-  else Not(step env heap e)
+  else Not(step ref env heap e)
 
 (*------CMP---------*)
 
 and
-  step_eql e1 e2 env heap =
+  step_eql e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x = y))
-      | _ -> failwith "Run-time type error: and"
-    else Equals(e1, step env heap e2)
-  else Equals(step env heap e1, e2)
+      | _ -> failwith "Run-time type error: eql"
+    else Equals(e1, step ref env heap e2)
+  else Equals(step ref env heap e1, e2)
 
 and
-  step_neql e1 e2 env heap =
+  step_neql e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x <> y))
-      | _ -> failwith "Run-time type error: and"
-    else NotEquals(e1, step env heap e2)
-  else NotEquals(step env heap e1, e2)
+      | _ -> failwith "Run-time type error: neql"
+    else NotEquals(e1, step ref env heap e2)
+  else NotEquals(step ref env heap e1, e2)
 
   and
-  step_less e1 e2 env heap =
+  step_less e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x < y))
-      | _ -> failwith "Run-time type error: and"
-    else Less(e1, step env heap e2)
-  else Less(step env heap e1, e2)
+      | _ -> failwith "Run-time type error: <"
+    else Less(e1, step ref env heap e2)
+  else Less(step ref env heap e1, e2)
 
   and
-  step_lessEql e1 e2 env heap =
+  step_lessEql e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x <= y))
-      | _ -> failwith "Run-time type error: and"
-    else Less(e1, step env heap e2)
-  else Less(step env heap e1, e2)
+      | _ -> failwith "Run-time type error: <="
+    else Less(e1, step ref env heap e2)
+  else Less(step ref env heap e1, e2)
 
   and
-  step_grater e1 e2 env heap =
+  step_grater e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x > y))
       | _ -> failwith "Run-time type error: and"
-    else Grater(e1, step env heap e2)
-  else Grater(step env heap e1, e2)
+    else Grater(e1, step ref env heap e2)
+  else Grater(step ref env heap e1, e2)
 
   and
-  step_graterEql e1 e2 env heap =
+  step_graterEql e1 e2 ref env heap =
   if is_primitive_val e1
   then if is_primitive_val e2
     then match (e1,e2) with
       | (Prim (Bool x),Prim (Bool y)) -> Prim(Bool (x >= y))
-      | _ -> failwith "Run-time type error: and"
-    else GraterOrEquals(e1, step env heap e2)
-  else GraterOrEquals(step env heap e1, e2)
+      | _ -> failwith "Run-time type error: >="
+    else GraterOrEquals(e1, step ref env heap e2)
+  else GraterOrEquals(step ref env heap e1, e2)
 
 (*------CMP---------*)
 and
-  step_while e1 e2 env heap =
+  step_while e1 e2 ref env heap =
   if is_primitive_val e1
   then  match  e1 with
-    | Prim(Bool true) -> While(e1, step env heap e2)
+    | Prim(Bool true) -> While(e1, step ref env heap e2)
     | Prim(Bool false) -> e2
     | _-> failwith "Run-time type error: while"
-  else While(step env heap e1, e2)
+  else While(step ref env heap e1, e2)
 
 
 and
-  step_seq e1 e2 env heap = 
+  step_seq e1 e2 ref env heap = 
     if is_primitive_val e1 then
       if is_primitive_val e2 then
         Prim Unit
-      else Sequence ( e1,step env heap e2)
-    else Sequence ( step env heap e1, e2)
+      else Sequence ( e1,step ref env heap e2)
+    else Sequence ( step ref env heap e1, e2)
 
 and 
 
-  step_block_nvar e1 env heap = 
+  step_block_nvar e1 ref env heap = 
     if is_primitive_val e1 then
       e1
-    else BlockWithoutVar ( step env heap e1)
+    else BlockWithoutVar ( step ref env heap e1)
 
 and 
 
-  step_block_var typ name e1 env heap =
+  step_block_var typ name e1 ref env heap =
     if is_primitive_val e1 then
       e1
-    else BlockWithVar( typ, name, step env heap e1)
+    else BlockWithVar( typ, name, step ref env heap e1)
 
 
 (*multistep*)
-let rec multistep e env heap =
+let rec multistep e ref env heap =
   if is_primitive_val e then e
-  else multistep (step env heap e) env heap
+  else multistep (step ref env heap e) ref env heap

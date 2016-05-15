@@ -3,8 +3,8 @@ open Interpreter;;
 open Typecheck;;
 open Printf;;
 
-let myHeap = [];;
-let myEnv = [];;
+let myHeap = ref [];;
+let myEnv =  ref [];;
 
 (*** Interpreter ***)
 
@@ -13,9 +13,9 @@ let myEnv = [];;
    evaluates [e] to a value [v], where e -->* v.
    That evaluation should never raise an exception,
    becuase [e] typechecks. *)
-let interp e env heap =
+let interp e ref env heap =
   (*ignore(typecheck empty e); multistep e*)
-  multistep e env heap
+  multistep e ref env heap
 
 
 (* A few test cases *)
@@ -23,12 +23,12 @@ let assert_raises f x =
   try ignore(f x); false with
   | _ -> true
   
-let _ = assert (Prim (Int 22) = (interp (Prim (Int 22)) myEnv myHeap));;
+let _ = assert (Prim (Int 22) = (interp (Prim (Int 22)) ref myEnv myHeap ));;
 
-let _ = print_int (getIntVal (interp (Prim (Int 22)) myEnv myHeap));;
+let _ = print_int (getIntVal (interp (Prim (Int 22)) ref myEnv myHeap));;
 printf "\n";;
 
-let _ = assert (Prim (Int 22) = interp (Add(Prim (Int 11), Prim(Int 11)))  myEnv myHeap)
+let _ = assert (Prim (Int 22) = interp (Add(Prim (Int 11), Prim(Int 11))) ref myEnv myHeap)
 
 let _ = assert ( true = is_value (Int 22 ))
 let _ = assert ( true = is_primitive (Prim (Int 10)))

@@ -25,7 +25,7 @@ type varEnv = VarEnv of (string*typVal) list
 (*-------------------*)
 
 (*Heap vars*)
-type fieldEnv = FieldEnv of string*typVal list
+type fieldEnv = FieldEnv of (string*typVal) list
 
 type objVal = ObjVal of string*fieldEnv 
 
@@ -35,7 +35,8 @@ type heap = Heap of (int*objVal) list
 type expr =
   | Prim of tVal (* ok *)
   | Var of string (* ok *)
-  | Field of string*string (**)
+  | GetVal of string (* ok *)
+  | GetField of string*string (**)
   | AssignVar of string*expr (**)
   | AssignField of string*string*expr (**)
   | Sequence of expr*expr (* ok *)

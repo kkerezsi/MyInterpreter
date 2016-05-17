@@ -66,7 +66,7 @@ let _ = assert ( getFirstVarValue ( popFirstVar ( popFirstVar ([
 								  	 ("myVar3", TypeVal (TPrimitive, (Int 7)));
 								  ]))) = (Int 7) )
 
-let empty = []
+let empty = ref [];;
 
 (************  Typecheck tests   *************)
 (* PRIM *)
@@ -147,6 +147,9 @@ let _ = assert ( TBool = typecheck empty (GraterOrEquals(Prim(Int 11), Prim(Int 
 let _ = assert ( TBool = typecheck empty (GraterOrEquals(Prim(Float 11.0), Prim(Float 11.0))))
 
 let _ = assert (true = assert_raises (typecheck empty) (GraterOrEquals(Prim(Int 11), Prim(Float 11.0))))
+
+(* Sequence *)
+let _ = assert ( TInt = typecheck empty (Sequence(AssignVar("x", (Prim(Int 3))), Add(GetVal "x", Prim(Int 3)))))
 
 
 

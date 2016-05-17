@@ -9,14 +9,17 @@ let lookup ctx x =
 (* [extend c x t] is the same context as [c], but with [x] bound
    to type [t].  If [x] was already bound, its previous binding
    is shadowed by [t]. *)
-let extend ctx x t =
-  (x,t)::ctx
+let extend ref ctx x t =
+  ctx := (x,t)::!ctx;
+  Int 0;;
 
 
-let rec typecheck ctx = function
+let rec typecheck ref ctx = function
   | GetVal x -> lookup ctx x
-  (* | AssignVar(name, e1) -> typecheck_assign_var ctx name e1 *)
+  | AssignVar(name, e1) -> typecheck_assign_var ctx name e1
+  (* | GetVar name ->  *)
   | Prim n -> typecheck_prim n
+  | Sequence(e1, e2) -> typecheck_seq ctx e1 e2
   | Add(e1,e2) -> typecheck_add ctx e1 e2
   | Sub(e1, e2) -> typecheck_sub ctx e1 e2
   | Mult(e1, e2) -> typecheck_mult ctx e1 e2
@@ -40,6 +43,15 @@ and
   | Bool _ -> TBool
   | Loc _ -> TInt
   | _ -> failwith "Type error (Prim)"
+
+and
+
+(******** Sequence *******)
+  typecheck_seq ctx e1 e2 =
+  let _ = typecheck ctx e1 in
+  let e2t = typecheck ctx e2 in
+  (* e1;e2 -> typeof e2 *)
+  e2t
 
 and
 
@@ -111,9 +123,14 @@ and
     | (TFloat, TFloat) -> TBool
     | _ -> failwith "Type error (Comparison)"
 
-(* and
+ and
 
-(*******  AssignVar  ********)
-  typecheck_assign_var ctx name e1  =
-  let e1t = typecheck ctx e1 in
-  let varType = extend ctx name e1t *)
+(* ****** Assign ****** *)
+ typecheck_assign_var ctx x e1 = 
+ let e1t = typecheck ctx e1 in
+ let _ = extend ctx x e1t in
+ e1t
+
+ (* ****** GetVar ****** *)
+ (* typecheck_get_var ctx x = 
+ let  *)

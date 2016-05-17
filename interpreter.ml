@@ -112,16 +112,25 @@ let defineVar v typV e ref env =
   Int 0;;
 (*------------------------------*)
 
+let updateVarHeap myLoc fldName e ref env =
+  env := (replaceInHeap myLoc fldName (TypeVal(typV, get_primitive_val e)) [] !env);
+  Int 0;
 
-(*------------------------------
-let rec replaceInHeap myName val filledUp = function
+(*------------God I beg for murcy------------------*)
+let rec replaceInHeap my_loc mvar mval filledUp = function
   | [] -> List.rev filledUp
   | (h::t) -> match h with
-              | (loc,ObjVal(cName, fldEnv)) -> if (myName = cName) then
-                                               replaceInHeap myName val ((myName,val)::filledUp) t
-                                                else
-                                               replaceInHeap myName val ((cName,fldEnv)::filledUp) t
-*)
+              | (loc,ObjVal(cName, fldEnv)) -> if ( loc  = my_loc) then  
+                                               match fldEnv with 
+                                               | FieldEnv(h2::t2) -> 
+                                               replaceInHeap my_loc mvar mval ( 
+                                                (my_loc ,ObjVal(cName,   FieldEnv(replaceInList mvar mval [] (h2::t2))
+                                                                                        ))::filledUp) t
+                                               | FieldEnv []               -> failwith "matching went wrong for empty list"
+                                              else
+                                               replaceInHeap my_loc mvar mval (
+                                                (my_loc ,ObjVal(cName,fldEnv))::filledUp) t
+
 
 (*------------------------------*)
 
@@ -191,6 +200,10 @@ let getLocVal x =
     else
       failwith "not found";;
 
+let init = function
+| TPrimitive  -> Prim(Int 0)
+| _           -> failwith "Not implemented yet"
+
 (* -- General purpose functions -- *)  
 
 (*-step implementation,
@@ -198,6 +211,7 @@ let getLocVal x =
 let rec step ref env heap = function
   | Prim _                -> failwith "not a step"
   | Var _                 -> failwith "Unbound variable"
+  | Init (var,typ,e)      -> step_init var typ e ref env heap 
   | GetVal(var)           -> step_getVal var ref env heap
   | GetField(var,fld)     -> step_getVarFld var fld ref env heap
   | AssignVar(v,e)        -> step_assign v e ref env heap
@@ -224,6 +238,13 @@ let rec step ref env heap = function
   | New(cName,lexpr)            -> step_new cName lexpr ref env heap 
   | Call(cName,mName,lexpr)     -> step_call cName mName lexpr ref env heap 
  
+
+and 
+  step_init var v_typ e ref env heap = 
+    if ( (Int 0) = defineVar var v_typ e ref env ) then 
+      Ret(var, e)
+    else
+      failwith "Unable to step return"
 
 and 
   step_getVal var ref env heap = 
@@ -293,8 +314,13 @@ and
       failwith "Error !Var name does not exist in the environment"
   else
     AssignField(v,fld,step ref env heap e)
+
 and
-  step_ret v e ref env heap =  Prim (Int 10)
+  step_ret v e ref env heap =  
+    if is_primitive_val e then 
+      Prim ( get_primitive_val e )
+    else
+        Ret(v,step ref env heap e)
 
 and
   (* Eval e1, eval e2, add the values *)

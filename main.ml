@@ -120,7 +120,7 @@ let _ = assert (Prim (Int 4) = (interp (
 
 let _ = assert (Prim (Int 18) = (interp (
 								Sequence( Add(Prim (Int 1), Prim (Int 1)),
-								Sequence( Sub(Prim (Int 4), Prim (Int 5)),
+				ru				Sequence( Sub(Prim (Int 4), Prim (Int 5)),
 								Sequence( Mult(Prim (Int 3), Prim (Int 4)),
 								Sequence( Add(Prim (Int 3), Prim (Int 5)),
 								Sequence( Div(Prim (Int 6), Prim (Int 2)),
@@ -145,7 +145,7 @@ let _ = assert (Prim (Bool true) = (interp (
 let _ = assert (Prim (Bool true) = (interp (
 	Sequence( AssignVar("x", Prim (Int 3)),
 	Sequence( AssignVar("x", Prim (Int 5)),
-		      Equals( GetVal("x"), Prim (Int 5) )
+		      Equals(GetVal("x"), Prim (Int 5))
 		))
 ) ref myEnv myHeap ));;
 

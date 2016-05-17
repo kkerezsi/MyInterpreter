@@ -102,19 +102,6 @@ let rec replaceInList a b filledUp = function
                               else
                                 replaceInList a b ((name,texp)::filledUp) t
 
-(*string typ e reference environment*)
-let updateVar v typV e ref env =
-  env := (replaceInList (v) (TypeVal(typV, get_primitive_val e)) [] !env);
-  Int 0;;
-
-let defineVar v typV e ref env =
-  env :=  (v,TypeVal(typV, get_primitive_val e))::!env;
-  Int 0;;
-(*------------------------------*)
-
-let updateVarHeap myLoc fldName e ref env =
-  env := (replaceInHeap myLoc fldName (TypeVal(typV, get_primitive_val e)) [] !env);
-  Int 0;
 
 (*------------God I beg for murcy------------------*)
 let rec replaceInHeap my_loc mvar mval filledUp = function
@@ -133,6 +120,20 @@ let rec replaceInHeap my_loc mvar mval filledUp = function
 
 
 (*------------------------------*)
+
+(*string typ e reference environment*)
+let updateVar v typV e ref env =
+  env := (replaceInList (v) (TypeVal(typV, get_primitive_val e)) [] !env);
+  Int 0;;
+
+let defineVar v typV e ref env =
+  env :=  (v,TypeVal(typV, get_primitive_val e))::!env;
+  Int 0;;
+(*------------------------------*)
+
+let updateVarHeap myLoc typ fldName e ref env =
+  env := (replaceInHeap myLoc fldName (TypeVal(typ, get_primitive_val e)) [] !env);
+  Int 0;;
 
 
 (* -- Environment var operations -- *)
@@ -302,8 +303,8 @@ and
                 let typ_val = getTypeExp e in
                 let typ_fld = getTypeExp fldVal in 
                 if(is_subtype typ_val typ_fld) then
-                (*Need impl*)
-                  Prim(Unit)
+                Prim(updateVarHeap loc typ_val v e ref heap) 
+                  
                 else
                   failwith "Error !Fild env could not be found"
               else

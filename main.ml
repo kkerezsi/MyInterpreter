@@ -120,7 +120,7 @@ let _ = assert (Prim (Int 4) = (interp (
 
 let _ = assert (Prim (Int 18) = (interp (
 								Sequence( Add(Prim (Int 1), Prim (Int 1)),
-				ru				Sequence( Sub(Prim (Int 4), Prim (Int 5)),
+								Sequence( Sub(Prim (Int 4), Prim (Int 5)),
 								Sequence( Mult(Prim (Int 3), Prim (Int 4)),
 								Sequence( Add(Prim (Int 3), Prim (Int 5)),
 								Sequence( Div(Prim (Int 6), Prim (Int 2)),

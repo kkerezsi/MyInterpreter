@@ -70,90 +70,80 @@ let empty = ref [];;
 
 (************  Typecheck tests   *************)
 (* PRIM *)
-let _ = assert ( TInt = typecheck empty (Prim (Int 5)))
-let _ = assert ( TFloat = typecheck empty (Prim (Float 5.0)))
-let _ = assert ( TBool = typecheck empty (Prim (Bool true)))
-let _ = assert ( TUnit = typecheck empty (Prim Unit))
+let _ = assert ( TInt = typecheck ref empty (Prim (Int 5)))
+let _ = assert ( TFloat = typecheck ref empty (Prim (Float 5.0)))
+let _ = assert ( TBool = typecheck ref empty (Prim (Bool true)))
+let _ = assert ( TUnit = typecheck ref empty (Prim Unit))
 
 (* ADD *)
-let _ = assert ( TInt = typecheck empty (Add(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TFloat = typecheck empty (Add(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TInt = typecheck ref empty (Add(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TFloat = typecheck ref empty (Add(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (Add(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Add(Prim(Int 11), Prim(Float 11.0))))
 
 (* SUB *)
-let _ = assert ( TInt = typecheck empty (Sub(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TFloat = typecheck empty (Sub(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TInt = typecheck ref empty (Sub(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TFloat = typecheck ref empty (Sub(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (Sub(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Sub(Prim(Int 11), Prim(Float 11.0))))
 
 (* MULT *)
-let _ = assert ( TInt = typecheck empty (Mult(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TFloat = typecheck empty (Mult(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TInt = typecheck ref empty (Mult(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TFloat = typecheck ref empty (Mult(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (Mult(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Mult(Prim(Int 11), Prim(Float 11.0))))
 
 (* DIV *)
-let _ = assert ( TInt = typecheck empty (Div(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TFloat = typecheck empty (Div(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TInt = typecheck ref empty (Div(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TFloat = typecheck ref empty (Div(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (Div(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Div(Prim(Int 11), Prim(Float 11.0))))
 
 (* AND *)
-let _ = assert ( TBool = typecheck empty (And(Prim(Bool true), Prim(Bool true))))
-let _ = assert (true = assert_raises (typecheck empty) (And(Prim(Bool true), Prim(Int 5))))
+let _ = assert ( TBool = typecheck ref empty (And(Prim(Bool true), Prim(Bool true))))
+let _ = assert (true = assert_raises (typecheck ref empty) (And(Prim(Bool true), Prim(Int 5))))
 
 (* OR *)
-let _ = assert ( TBool = typecheck empty (Or(Prim(Bool true), Prim(Bool true))))
-let _ = assert (true = assert_raises (typecheck empty) (Or(Prim(Bool true), Prim(Int 5))))
+let _ = assert ( TBool = typecheck ref empty (Or(Prim(Bool true), Prim(Bool true))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Or(Prim(Bool true), Prim(Int 5))))
 
 (* NOT *)
-let _ = assert ( TBool = typecheck empty (Not(Prim(Bool true))))
-let _ = assert (true = assert_raises (typecheck empty) (Not(Prim(Int 5))) )
+let _ = assert ( TBool = typecheck ref empty (Not(Prim(Bool true))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Not(Prim(Int 5))) )
 
 
 (* Equals *)
-let _ = assert ( TBool = typecheck empty (Equals(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TBool = typecheck empty (Equals(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TBool = typecheck ref empty (Equals(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TBool = typecheck ref empty (Equals(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (Equals(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Equals(Prim(Int 11), Prim(Float 11.0))))
 
 (* NotEquals *)
-let _ = assert ( TBool = typecheck empty (NotEquals(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TBool = typecheck empty (NotEquals(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TBool = typecheck ref empty (NotEquals(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TBool = typecheck ref empty (NotEquals(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (NotEquals(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (NotEquals(Prim(Int 11), Prim(Float 11.0))))
 
 (* Less *)
-let _ = assert ( TBool = typecheck empty (Less(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TBool = typecheck empty (Less(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TBool = typecheck ref empty (Less(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TBool = typecheck ref empty (Less(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (Less(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Less(Prim(Int 11), Prim(Float 11.0))))
 
 (* LessOrEquals *)
-let _ = assert ( TBool = typecheck empty (LessOrEquals(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TBool = typecheck empty (LessOrEquals(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TBool = typecheck ref empty (LessOrEquals(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TBool = typecheck ref empty (LessOrEquals(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (LessOrEquals(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (LessOrEquals(Prim(Int 11), Prim(Float 11.0))))
 
 (* Greater *)
-let _ = assert ( TBool = typecheck empty (Grater(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TBool = typecheck empty (Grater(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TBool = typecheck ref empty (Grater(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TBool = typecheck ref empty (Grater(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (Grater(Prim(Int 11), Prim(Float 11.0))))
+let _ = assert (true = assert_raises (typecheck ref empty) (Grater(Prim(Int 11), Prim(Float 11.0))))
 
 (* GreaterOrEquals *)
-let _ = assert ( TBool = typecheck empty (GraterOrEquals(Prim(Int 11), Prim(Int 11))))
-let _ = assert ( TBool = typecheck empty (GraterOrEquals(Prim(Float 11.0), Prim(Float 11.0))))
+let _ = assert ( TBool = typecheck ref empty (GraterOrEquals(Prim(Int 11), Prim(Int 11))))
+let _ = assert ( TBool = typecheck ref empty (GraterOrEquals(Prim(Float 11.0), Prim(Float 11.0))))
 
-let _ = assert (true = assert_raises (typecheck empty) (GraterOrEquals(Prim(Int 11), Prim(Float 11.0))))
-
-(* Sequence *)
-let _ = assert ( TInt = typecheck empty (Sequence(AssignVar("x", (Prim(Int 3))), Add(GetVal "x", Prim(Int 3)))))
-
-
-
-(*
-let _ = assert ( getFirstVarValue ("myVar",TPrimitive, (Int 5)) = 5 )
-let _ = assert ( getFirstVarType ("myVar",TPrimitive, (Int 5)) = TPrimitive )
-*)
+let _ = assert ( true = assert_raises (typecheck ref empty) (GraterOrEquals(Prim(Int 11), Prim(Float 11.0))))

@@ -35,10 +35,11 @@ type heap = Heap of (int*objVal) list
 type expr =
   | Prim of tVal (* ok *)
   | Var of string (* ok *)
+  | Init of string*typ*expr
   | GetVal of string (* ok *)
   | GetField of string*string (**)
   | AssignVar of string*expr (**)
-  | AssignField of string*string*expr (**)
+  | AssignField of string*string*expr 
   | Sequence of expr*expr (* ok *)
   | If of expr*expr*expr (* ok *)
   | Add of expr*expr (* ok *)
@@ -59,7 +60,7 @@ type expr =
   | BlockWithoutVar of expr (* ok *)
   | New of string*expr list
   | Call of string*string*expr list
-  | Ret of string*tVal (* *)
+  | Ret of string*expr (* *)
 
 type fieldDecl = FieldDecl of typ*string
 

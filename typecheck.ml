@@ -3,7 +3,7 @@ open Interpreter;;
 
 (* [lookup c x] is the type of [x] according to context [c]. *)
 let lookup ref ctx x =
-  try List.assoc x ref ctx with
+  try List.assoc x !ctx with
   | Not_found -> failwith "Type error (unbound variable)"
 
 (* [extend c x t] is the same context as [c], but with [x] bound
@@ -16,8 +16,7 @@ let extend ref ctx x t =
 
 let rec typecheck ref ctx = function
   | GetVal x -> lookup ref ctx x
-  | AssignVar(name, e1) -> typecheck_assign_var ref ctx name e1
-  (* | GetVar name ->  *)
+  | AssignVar(name, e1) -> typecheck_assign_var ref ctx name e1 
   | Prim n -> typecheck_prim n
   | Sequence(e1, e2) -> typecheck_seq ref ctx e1 e2
   | Add(e1,e2) -> typecheck_add ref ctx e1 e2
@@ -42,7 +41,6 @@ and
   | Evoid -> TUnit
   | Bool _ -> TBool
   | Loc _ -> TInt
-  | _ -> failwith "Type error (Prim)"
 
 and
 
@@ -130,7 +128,3 @@ and
  let e1t = typecheck ref ctx e1 in
  let _ = extend ref ctx x e1t in
  e1t
-
- (* ****** GetVar ****** *)
- (* typecheck_get_var ref ctx x = 
- let  *)

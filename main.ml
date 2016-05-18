@@ -147,3 +147,5 @@ let _ = assert ( TBool = typecheck ref empty (GraterOrEquals(Prim(Int 11), Prim(
 let _ = assert ( TBool = typecheck ref empty (GraterOrEquals(Prim(Float 11.0), Prim(Float 11.0))))
 
 let _ = assert ( true = assert_raises (typecheck ref empty) (GraterOrEquals(Prim(Int 11), Prim(Float 11.0))))
+
+let _ = assert ( TInt = typecheck ref empty ( Sequence((AssignVar ("x", Prim(Int 10))), (GetVal "x"))))

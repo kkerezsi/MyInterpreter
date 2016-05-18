@@ -5,6 +5,7 @@ open Printf;;
 
 let myHeap = ref [];;
 let myEnv  = ref [];;
+let empty = ref [];;
 
 (*** Interpreter ***)
 
@@ -14,7 +15,7 @@ let myEnv  = ref [];;
    That evaluation should never raise an exception,
    becuase [e] typechecks. *)
 let interp e ref env heap =
-  (*ignore(typecheck empty e); multistep e*)
+  ignore(typecheck ref empty e);
   multistep e ref env heap
 
 
@@ -65,8 +66,6 @@ let _ = assert ( getFirstVarValue ( popFirstVar ( popFirstVar ([
 								  	 ("myVar2", TypeVal (TPrimitive, (Int 6)));
 								  	 ("myVar3", TypeVal (TPrimitive, (Int 7)));
 								  ]))) = (Int 7) )
-
-let empty = ref [];;
 
 (************  Typecheck tests   *************)
 (* PRIM *)
@@ -159,7 +158,6 @@ let _ = assert (Prim (Bool true) = (interp (LessOrEquals ( Prim(Float 1.0) , Pri
 let _ = assert (Prim (Bool false) = (interp (LessOrEquals ( Prim(Int 22) , Prim(Int 11) )) ref myEnv myHeap ));;
 let _ = assert (Prim (Bool true) = (interp (Equals ( Prim(Int 22) , Prim(Int 22) )) ref myEnv myHeap ));;
 let _ = assert (Prim (Bool true) = (interp (NotEquals ( Prim(Int 22) , Prim(Int 2) )) ref myEnv myHeap ));;
-
 
 
 let _ = assert (Prim (Int 4) = (interp (

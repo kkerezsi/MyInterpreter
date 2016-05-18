@@ -27,8 +27,8 @@ let rec typecheck ref ctx = function
   | Or(e1, e2) -> typecheck_or ref ctx e1 e2
   | Equals(e1, e2) | NotEquals(e1, e2) | Less(e1, e2) | LessOrEquals(e1, e2) | GraterOrEquals(e1, e2) | Grater(e1, e2) -> typecheck_comparison ref ctx e1 e2
   | Not e1 -> typecheck_not ref ctx e1
-  (* | If(e1,e2,e3) -> typecheck_if ref ctx e1 e2 e3 *)
-  | _ ->failwith "Type check error"
+  | If(e1,e2,e3) -> typecheck_if ref ctx e1 e2 e3
+  | _ -> failwith "Type check error"
 
 and
 
@@ -128,3 +128,14 @@ and
  let e1t = typecheck ref ctx e1 in
  let _ = extend ref ctx x e1t in
  e1t
+
+ (*     IF      *)
+ and
+
+  typecheck_if ref ctx e1 e2 e3 =
+    let e1t = typecheck ref ctx e1 in
+    let e2t = typecheck ref ctx e2 in
+    if e1t = TBool then e2t
+    else failwith "Type error (if)"
+
+
